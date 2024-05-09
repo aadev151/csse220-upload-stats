@@ -2,40 +2,48 @@ package MapsHW;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-/**
+/*****
  * Class: Maps
- * @author CSSE Faculty
- * Purpose: provide practice with the HashMap data structure
+ * @author CSSE Faculty and Alex Anisimov
+ * Purpose: provide practice with the HashMap data structureE
  * 
  *************************************************************************************** 
- *         REQUIRED HELP CITATION
- * 
- *         TODO: cite your help here or say "only used CSSE220 materials"
+ *REQUIRED HELP CItATION:
+ *https://stackoverflow.com/questions/35297537/difference-between-replace-and-put-for-hashmap
  *************************************************************************************** 
  */
 public class Maps {
-	
 	/**
-	 * Given two arrays this operation builds and returns a new HashMap that 
+	 * Given two arrays this operation must build and return a new HashMap that 
 	 * contains a mapping from String (hashmap's key) to Integer (hashmap's value)
-	 * 
+	 * lol
 	 * @param airportCodes an array of String containing 3-letter airport codes
 	 * @param airportElevations an array of Integer containing each airport's elevation in meters
-	 * @return a HashMap containing a mapping from each airport code to its elevation
+	 * @return a HashMap containing a mapping from each airport code to its elevaton
 	 * requires: no duplicate airport codes are contained in array airportCodes - that is, you can program this operation
 	 *           assuming that the caller will make sure there are no duplicates in airportCodes array
 	 * example: 
 	 *    input airportCodes = ["CDG", "FOC", "IND"]
 	 *    input airportElevations = [118, 14, 230]
-	 *    return value = {CDG=118, FOC=14, IND=230}
+	 *    return value={CDG=118,FOC=14,IND=230}
 	 */
 	public static HashMap<String, Integer> buildAirportMap(String[] airportCodes, Integer[] airportElevations) {
-		throw new UnsupportedOperationException("TODO: delete this statement and implement this operation.");
+		HashMap<String, Integer> airportCodesToElevations = new HashMap<String, Integer>();
+		
+		for (int i = 0; i < airportCodes.length; i++) {
+			airportCodesToElevations.put(airportCodes[i], airportElevations[i]);
+		}
+				
+		return airportCodesToElevations;
+
 	} // buildAirportMap
 	
+	// fewkjrlkjwelfjlewknjflj
+	//jrlewjlrejlkrewj
+	// rejwljrlkjewlkjrewlkjlkrejlrewlkrlkjewrlkjewrjlkrewjrewlkhgh;w
 	
 	/**
-	 * Given a single input string in inputString, this operation returns the character 
+	 * Given a single input string in inputString, this operation must return the character 
 	 * from inputString that appears the most number of times
 	 * 
 	 * Your solution must use a HashMap; you cannot use nested for-loops to solve this problem.
@@ -56,7 +64,28 @@ public class Maps {
 	 *    return value = 'c'
 	 */
 	public static char mostCommonCharacter(String inputString) {
-		throw new UnsupportedOperationException("TODO: delete this statement and implement this operation.");
+		int maxCount = 1;
+		char ans = inputString.charAt(0);
+		
+		HashMap<Character, Integer> charsToTheirCounts = new HashMap<Character, Integer>();
+		
+		for (int i = 0; i < inputString.length(); i++) {
+			char letter = inputString.charAt(i);
+			if (charsToTheirCounts.containsKey(letter)) {
+				int currentValue = charsToTheirCounts.get(letter);
+				charsToTheirCounts.replace(letter, currentValue + 1);
+			} else {
+				charsToTheirCounts.put(letter, 0);
+			}
+			
+			if (charsToTheirCounts.get(letter) > maxCount) {
+				maxCount = charsToTheirCounts.get(letter);
+				ans = letter;
+			}
+		}
+		
+		return ans;
+		
 	} // mostCommonCharacter	
 	
 	
@@ -105,7 +134,22 @@ public class Maps {
 	 *    "MA102" are in a prereq infinite loop, that is, by following prereqs of "MA102", one can eventually get back to "MA102"
 	 */
 	public static int getNumberOfCoursesToTake(HashMap<String, String> courseMap, String courseToTake) {
-		throw new UnsupportedOperationException("TODO: delete this statement and implement this operation.");
+		int numberOfPrereq = 0;
+		String currentCourse = courseToTake;		
+		ArrayList<String> takenCourses = new ArrayList<String>();
+		
+		while (courseMap.get(currentCourse).length() != 0) {
+			numberOfPrereq++;
+			takenCourses.add(currentCourse);
+			
+			currentCourse = courseMap.get(currentCourse);
+			if (takenCourses.contains(currentCourse)) {
+				return -1;
+			}
+		}
+		
+		return numberOfPrereq;
+
 	} // getNumberOfCoursesToTake
 	
 	
@@ -114,7 +158,7 @@ public class Maps {
 	 * This operation takes an array of temperatures and a corresponding array of the city names
 	 * giving the location where each temperature reading was recorded.  
 	 * 
-	 * The operation returns the name of a city that experienced a temperature drop.  
+	 * The operation must return the name of a city that experienced a temperature drop.  
 	 * If no city experienced a drop, the operation should return null.	 
 	 * 
 	 * You must use a HashMap to solve this problem.
@@ -141,14 +185,25 @@ public class Maps {
 	 *    return value = null, because no city experienced a temperature drop
 	 */
 	public static String getTemperatureDropCity(int[] recordedTemps, String[] cityNames) {
-		throw new UnsupportedOperationException("TODO: delete this statement and implement this operation.");
+		HashMap<String, Integer> citiesToTemperatures = new HashMap<String, Integer>();
+		
+		for (int i = 0; i < recordedTemps.length; i ++) {
+			if (citiesToTemperatures.containsKey(cityNames[i]) && recordedTemps[i] < citiesToTemperatures.get(cityNames[i])) {
+				return cityNames[i];
+			} else {
+				citiesToTemperatures.put(cityNames[i], recordedTemps[i]);
+			}
+		}
+		
+		return null;
+		
 	} // getTemperatureDropCity
 	
 	
 	/**
 	 * This operation reverses (i.e., exchanges the keys and values) an initialMap.
 	 * initialMap may contain multiple different keys with the same value.  
-	 * Because of this, the value field of the returned map must be an ArrayList.
+	 * Because of this, the value field of the returned map must be a list.
 	 * 
 	 * The initial HashMap contains a mapping from Integers to Strings.
 	 * The reversed HashMap must contain a mapping from Strings to ArrayLists of Integers.
@@ -163,7 +218,22 @@ public class Maps {
 	 *    return value = {A=[1,2], B=[3]}
 	 */
 	public static HashMap<String, ArrayList<Integer>> reverseHashmap(HashMap<Integer, String> initialMap) {
-		throw new UnsupportedOperationException("TODO: delete this statement and implement this operation.");
+		HashMap<String, ArrayList<Integer>> reversedMap = new HashMap<String, ArrayList<Integer>>();
+		
+		for (Integer key : initialMap.keySet()) {
+			String value = initialMap.get(key);
+			
+			if (reversedMap.containsKey(value)) {
+				reversedMap.get(value).add(key);
+			} else {
+				ArrayList<Integer> newEntry = new ArrayList<Integer>();
+				newEntry.add(key);
+				reversedMap.put(value, newEntry);
+			}
+		}
+		
+		return reversedMap;
+
 	} // reverseHashmap
 
 }
