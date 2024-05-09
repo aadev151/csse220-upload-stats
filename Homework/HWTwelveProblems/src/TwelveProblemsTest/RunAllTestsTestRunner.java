@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.Scanner;
 
 import org.junit.runner.Description;
@@ -26,7 +27,31 @@ public class RunAllTestsTestRunner extends BlockJUnit4ClassRunner {
 	private ArrayList<String> resultsToOutput;
 	private String didPassAllTests;
 	private boolean operationIsImplemented;
+	
+	// -----------------------------------------------
+	// The following fields added to support pushing results.csv to server
+	
+	private String errors;
+	private String commitId;
+	// -----------------------------------------------
+	
+	// -----------------------------------------------
+	// The following operation added to support pushing results.csv to server
 
+	private String getRandomAlphanumericStringOfLength(int targetStringLength) {
+		int leftLimit = 48; // numeral '0'
+		int rightLimit = 122; // letter 'z'
+		Random random = new Random();
+
+		String generatedString = random.ints(leftLimit, rightLimit + 1)
+				.filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97)).limit(targetStringLength)
+				.collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append).toString();
+
+		return generatedString;
+	}
+	// -----------------------------------------------
+
+	
 	@SuppressWarnings("rawtypes")
 	public RunAllTestsTestRunner(Class testClass) throws org.junit.runners.model.InitializationError {
 		super(testClass);
@@ -38,6 +63,17 @@ public class RunAllTestsTestRunner extends BlockJUnit4ClassRunner {
 		this.resultsToOutput = new ArrayList<>();
 		this.didPassAllTests = "1";
 		this.operationIsImplemented = true;
+		 
+		// -----------------------------------------------
+		// The following lines of code added to support pushing results.csv to server
+		this.errors = "";
+		if (!RunAllTests.assignedCommitId) {
+			this.commitId = getRandomAlphanumericStringOfLength(10);
+			RunAllTestsTearDown.commitId = this.commitId;
+			RunAllTests.assignedCommitId = true;
+		}	
+		// -----------------------------------------------
+	
 	}
 
 	@Override
@@ -64,6 +100,11 @@ public class RunAllTestsTestRunner extends BlockJUnit4ClassRunner {
 				currentTestDidPass = 0;
 				String msg = failure.getMessage(); // write that
 
+				// -----------------------------------------------
+				// The following line of code added to support pushing results.csv to server
+				errors += msg;
+				// -----------------------------------------------
+				
 				if (msg != null && msg.equals("TODO: delete this statement and implement this operation.")) {
 					operationIsImplemented = false;
 				}
@@ -86,7 +127,7 @@ public class RunAllTestsTestRunner extends BlockJUnit4ClassRunner {
 		super.run(decorator);
 
 		//Data collection section
-		//All of this was added by me, except for the thing in the first else statement
+		//repineap: All of this was added, except for the thing in the first else statement
 		ArrayList<String> dataList = importComplexityData(name.substring(4));
 		String compString = "NaN";
 		String functionTree = "N/A";
@@ -111,9 +152,20 @@ public class RunAllTestsTestRunner extends BlockJUnit4ClassRunner {
 			resultsToOutput.add(resultsOfAllJUnitTests);
 			resultsToOutput.add(didPassAllTests);
 			resultsToOutput.add(RunAllTests.timestamp);
-			//Added these two to be output
+			// repineap: Added these two to be output
 			resultsToOutput.add(compString);
 			resultsToOutput.add(functionTree);
+			// -----------------------------------------------
+			
+			
+			// -----------------------------------------------
+			// The following lines of code added to support pushing results.csv to server	
+			RunAllTests.exportFinalCSV(resultsToOutput.toString().substring(1, resultsToOutput.toString().length() - 1)
+					.replace(",  ", ",").replace(", ", ",") + "\n");
+			resultsToOutput.add(errors.replace("\n", "\\n"));
+			getDiff();
+			// -----------------------------------------------
+
 			exportResults(resultsToOutput);
 		}
 
@@ -146,9 +198,58 @@ public class RunAllTestsTestRunner extends BlockJUnit4ClassRunner {
 			e.printStackTrace();
 		}
 	}
+
+	// -----------------------------------------------
+	// The following operations added to support pushing results.csv to server	
+
+	private void getDiff() {
+		resultsToOutput.add(String.valueOf(getFileSizeDifference()));
+		resultsToOutput.add(String.valueOf(getFileLengthDifference()));
+	}
+
+	private long getFileSizeDifference() {
+		File fileSizeFile = new File("src/TestResults/fileSize.txt");
+
+		if (fileSizeFile.exists() && !fileSizeFile.isDirectory()) {
+			long prevFileSize = Long.parseLong(RunAllTests.readFile(fileSizeFile));
+			long curFileSize = new File(RunAllTests.PATH_TO_PROGRAM).length();
+			RunAllTests.writeToFile(String.valueOf(curFileSize), fileSizeFile);
+
+			return curFileSize - prevFileSize;
+
+		} else {
+			long curFileSize = new File(RunAllTests.PATH_TO_PROGRAM).length();
+			RunAllTests.writeToFile(String.valueOf(curFileSize), fileSizeFile);
+
+			return curFileSize;
+		}
+	}
+
+	private int getFileLengthDifference() {
+		// includes \n and \r
+
+		File fileLengthFile = new File("src/TestResults/fileLength.txt");
+
+		if (fileLengthFile.exists() && !fileLengthFile.isDirectory()) {
+			int prevFileLength = Integer.parseInt(RunAllTests.readFile(fileLengthFile));
+			int curFileLength = RunAllTests.readFile(new File(RunAllTests.PATH_TO_PROGRAM)).length();
+			RunAllTests.writeToFile(String.valueOf(curFileLength), fileLengthFile);
+
+			return curFileLength - prevFileLength;
+
+		} else {
+			int curFileLength = RunAllTests.readFile(new File(RunAllTests.PATH_TO_PROGRAM)).length();
+			RunAllTests.writeToFile(String.valueOf(curFileLength), fileLengthFile);
+
+			return curFileLength;
+		}
+	}
+	// -----------------------------------------------
+	
+	
 	
 	/*
-	 * repineap: used to collect the complexity data from the saved files based on function name
+	 * repineap: The following operation used to collect the complexity data from the saved files based on function name
 	 */
 	private ArrayList<String> importComplexityData(String functionName) {
 		functionName = functionName.substring(0, 1).toLowerCase() + functionName.substring(1);
