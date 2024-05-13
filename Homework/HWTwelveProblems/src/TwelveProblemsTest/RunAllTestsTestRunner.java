@@ -189,6 +189,8 @@ public class RunAllTestsTestRunner extends BlockJUnit4ClassRunner {
 				fos.write(outputString.getBytes());
 				fos.close();
 
+				RunAllTests.exportFinalCSVWithNewFeatures(outputString); 
+
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
